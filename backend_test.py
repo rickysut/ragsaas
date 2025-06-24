@@ -39,6 +39,8 @@ class RAGSaaSAPITester:
                     response = requests.post(url, headers=headers, files=files)
                 else:
                     response = requests.post(url, json=data, headers=headers)
+            elif method == 'DELETE':
+                response = requests.delete(url, headers=headers)
             
             success = response.status_code == expected_status
             
