@@ -244,6 +244,22 @@ async def login(user_login: UserLogin):
     }
 
 # Document endpoints
+@api_router.delete("/documents/{document_id}")
+async def delete_document(
+    document_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    # Find and delete the document
+    result = await db.documents.delete_one({
+        "id": document_id,
+        "user_id": current_user.id
+    })
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    return {"message": "Document deleted successfully"}
+
 @api_router.post("/documents/upload")
 async def upload_document(
     file: UploadFile = File(...),
