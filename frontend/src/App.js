@@ -523,7 +523,98 @@ function QueryTab() {
   );
 }
 
-function DocumentsTab({ documents }) {
+function DataGrid({ contextData, language }) {
+  const [gridData, setGridData] = useState([]);
+  const [columns, setColumns] = useState([]);
+
+  useEffect(() => {
+    if (contextData && contextData.length > 0) {
+      // Parse the context data to create grid
+      const parsedData = [];
+      const columnSet = new Set();
+
+      contextData.forEach(chunk => {
+        if (chunk.includes('|')) {
+          const row = {};
+          const pairs = chunk.split(' | ');
+          pairs.forEach(pair => {
+            if (pair.includes(':')) {
+              const [key, value] = pair.split(':', 2);
+              const cleanKey = key.trim();
+              const cleanValue = value.trim();
+              row[cleanKey] = cleanValue;
+              columnSet.add(cleanKey);
+            }
+          });
+          if (Object.keys(row).length > 0) {
+            parsedData.push(row);
+          }
+        }
+      });
+
+      setGridData(parsedData);
+      setColumns(Array.from(columnSet));
+    }
+  }, [contextData]);
+
+  if (gridData.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mb-6">
+      <h4 className="text-md font-medium text-gray-900 mb-3 flex items-center">
+        <Grid className="w-4 h-4 mr-2" />
+        {language === 'id' ? 'Data dalam Format Grid' : 'Data in Grid Format'}
+      </h4>
+      <div className="overflow-x-auto border border-gray-200 rounded-lg">
+        <table className="w-full text-sm text-left">
+          <thead className="bg-gray-50 border-b">
+            <tr>
+              {columns.map((column, index) => (
+                <th key={index} className="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
+                  {column}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {gridData.map((row, rowIndex) => (
+              <tr key={rowIndex} className="hover:bg-gray-50">
+                {columns.map((column, colIndex) => (
+                  <td key={colIndex} className="px-4 py-3 text-gray-800 whitespace-nowrap">
+                    {row[column] || '-'}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function DocumentsTab({ documents, onDocumentDeleted }) {
+  const [deleting, setDeleting] = useState(null);
+
+  const handleDelete = async (documentId, filename) => {
+    if (!window.confirm(`Apakah Anda yakin ingin menghapus dokumen "${filename}"?`)) {
+      return;
+    }
+
+    setDeleting(documentId);
+    try {
+      await axios.delete(`${API}/documents/${documentId}`);
+      onDocumentDeleted();
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      alert('Gagal menghapus dokumen');
+    } finally {
+      setDeleting(null);
+    }
+  };
+
   return (
     <div>
       <div className="bg-white rounded-lg shadow-sm border">
@@ -542,7 +633,7 @@ function DocumentsTab({ documents }) {
             documents.map((doc) => (
               <div key={doc.id} className="px-6 py-4 hover:bg-gray-50">
                 <div className="flex items-center justify-between">
-                  <div>
+                  <div className="flex-1">
                     <h4 className="font-medium text-gray-900">{doc.filename}</h4>
                     <div className="flex items-center space-x-4 text-sm text-gray-500 mt-1">
                       <span className="capitalize">{doc.file_type}</span>
@@ -550,7 +641,7 @@ function DocumentsTab({ documents }) {
                       <span>{new Date(doc.uploaded_at).toLocaleDateString('id-ID')}</span>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       doc.processed 
                         ? 'bg-green-100 text-green-800' 
@@ -558,6 +649,20 @@ function DocumentsTab({ documents }) {
                     }`}>
                       {doc.processed ? 'Processed' : 'Processing'}
                     </span>
+                    <button
+                      onClick={() => handleDelete(doc.id, doc.filename)}
+                      disabled={deleting === doc.id}
+                      className="inline-flex items-center px-3 py-1.5 border border-red-300 text-red-700 bg-white hover:bg-red-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded text-sm font-medium transition-colors disabled:opacity-50"
+                    >
+                      {deleting === doc.id ? (
+                        <div className="w-4 h-4 border-2 border-red-300 border-t-red-600 rounded-full animate-spin"></div>
+                      ) : (
+                        <>
+                          <Trash2 className="w-4 h-4 mr-1" />
+                          Hapus
+                        </>
+                      )}
+                    </button>
                   </div>
                 </div>
               </div>
