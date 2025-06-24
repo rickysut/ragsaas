@@ -429,20 +429,50 @@ async def generate_report(
     # Get user's documents for additional context
     documents = await db.documents.find({"user_id": current_user.id, "processed": True}).to_list(100)
     
-    report_data = {
-        "generated_at": datetime.utcnow().isoformat(),
-        "query": query_request.query,
-        "language": query_request.language,
-        "answer": rag_response.answer,
-        "sources": rag_response.sources,
-        "document_count": len(documents),
-        "total_chunks": sum(len(doc.get("chunks", [])) for doc in documents),
-        "context_used": rag_response.context_used
-    }
+    # Extract data from documents and context for Excel report
+    report_data = []
+    
+    # Try to extract tabular data from the context
+    for context_chunk in rag_response.context_used:
+        # Parse pipe-separated data back to structured format
+        if "|" in context_chunk:
+            row_data = {}
+            pairs = context_chunk.split(" | ")
+            for pair in pairs:
+                if ":" in pair:
+                    key, value = pair.split(":", 1)
+                    row_data[key.strip()] = value.strip()
+            if row_data:
+                report_data.append(row_data)
+    
+    # If no structured data found, create a summary report
+    if not report_data:
+        report_data = [{
+            "Query": query_request.query,
+            "Answer": rag_response.answer,
+            "Language": query_request.language,
+            "Generated_At": datetime.utcnow().isoformat(),
+            "Sources": ", ".join(rag_response.sources),
+            "Document_Count": len(documents)
+        }]
+    
+    # Create Excel file
+    df = pd.DataFrame(report_data)
+    excel_file = io.BytesIO()
+    df.to_excel(excel_file, index=False, sheet_name='RAG Report')
+    excel_file.seek(0)
+    
+    # Convert to base64 for JSON response
+    import base64
+    excel_b64 = base64.b64encode(excel_file.getvalue()).decode()
     
     return {
-        "message": "Report generated successfully",
-        "report": report_data
+        "message": "Excel report generated successfully",
+        "excel_data": excel_b64,
+        "filename": f"rag-report-{datetime.utcnow().strftime('%Y%m%d-%H%M%S')}.xlsx",
+        "query": query_request.query,
+        "answer": rag_response.answer,
+        "sources": rag_response.sources
     }
 
 # Health check
