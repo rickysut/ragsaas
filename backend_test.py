@@ -292,6 +292,11 @@ def main():
     if not report_success:
         print("❌ Report generation failed")
     
+    # Test document deletion
+    delete_success = tester.test_delete_document()
+    if not delete_success:
+        print("❌ Document deletion failed")
+    
     # Print results
     print(f"\n📊 Tests passed: {tester.tests_passed}/{tester.tests_run}")
     return 0 if tester.tests_passed == tester.tests_run else 1
