@@ -16,6 +16,7 @@ import pandas as pd
 import io
 import bcrypt
 import jwt
+import base64
 from openai import OpenAI
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
