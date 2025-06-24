@@ -393,15 +393,22 @@ function QueryTab() {
         language
       });
       
-      const reportData = response.data.report;
-      const blob = new Blob([JSON.stringify(reportData, null, 2)], {
-        type: 'application/json'
+      // Convert base64 to blob and download
+      const base64Data = response.data.excel_data;
+      const binaryData = atob(base64Data);
+      const bytes = new Uint8Array(binaryData.length);
+      for (let i = 0; i < binaryData.length; i++) {
+        bytes[i] = binaryData.charCodeAt(i);
+      }
+      
+      const blob = new Blob([bytes], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       });
       
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `rag-report-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = response.data.filename;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
