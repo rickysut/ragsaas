@@ -252,7 +252,7 @@ function Dashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'upload' && <UploadTab onUploadSuccess={fetchDocuments} />}
         {activeTab === 'query' && <QueryTab />}
-        {activeTab === 'documents' && <DocumentsTab documents={documents} />}
+        {activeTab === 'documents' && <DocumentsTab documents={documents} onDocumentDeleted={fetchDocuments} />}
       </div>
     </div>
   );
