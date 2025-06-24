@@ -207,7 +207,7 @@ class RAGSaaSAPITester:
             print("❌ No document ID available for deletion test")
             return False
             
-        success, response = self.run_test(
+        success, delete_response = self.run_test(
             "Document Deletion",
             "DELETE",
             f"documents/{self.document_id}",
