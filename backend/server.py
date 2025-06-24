@@ -464,7 +464,6 @@ async def generate_report(
     excel_file.seek(0)
     
     # Convert to base64 for JSON response
-    import base64
     excel_b64 = base64.b64encode(excel_file.getvalue()).decode()
     
     return {
