@@ -196,9 +196,49 @@ class RAGSaaSAPITester:
             }
         )
         
-        if success and 'report' in response:
-            print(f"Report generated successfully")
+        if success and 'excel_data' in response:
+            print(f"Excel report generated successfully")
             return True
+        return False
+        
+    def test_delete_document(self):
+        """Test document deletion"""
+        if not self.document_id:
+            print("❌ No document ID available for deletion test")
+            return False
+            
+        success, response = self.run_test(
+            "Document Deletion",
+            "DELETE",
+            f"documents/{self.document_id}",
+            200
+        )
+        
+        if success:
+            print(f"Document deleted successfully: {self.document_id}")
+            # Verify document is gone by listing documents
+            list_success, list_response = self.run_test(
+                "Verify Document Deletion",
+                "GET",
+                "documents",
+                200
+            )
+            
+            if list_success:
+                # Check if the deleted document is no longer in the list
+                deleted = True
+                for doc in list_response:
+                    if doc.get('id') == self.document_id:
+                        deleted = False
+                        break
+                
+                if deleted:
+                    print("✅ Document deletion verified")
+                    return True
+                else:
+                    print("❌ Document still exists after deletion")
+                    return False
+        
         return False
 
 def main():
