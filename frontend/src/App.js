@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useDropzone } from 'react-dropzone';
-import { Download, Upload, MessageCircle, FileText, User, LogOut, Search, Database } from 'lucide-react';
+import { Download, Upload, MessageCircle, FileText, User, LogOut, Search, Database, Trash2, Grid } from 'lucide-react';
+import * as XLSX from 'xlsx';
 import './App.css';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
