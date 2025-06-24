@@ -485,11 +485,17 @@ function QueryTab() {
                 {language === 'id' ? 'Hasil Analisis' : 'Analysis Result'}
               </h3>
               
-              <div className="prose max-w-none mb-6">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">{result.answer}</p>
+              <div className="mb-6">
+                <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg mb-4">
+                  <h4 className="font-medium text-blue-900 mb-2">
+                    {language === 'id' ? 'Jawaban AI' : 'AI Answer'}
+                  </h4>
+                  <p className="text-blue-800 leading-relaxed whitespace-pre-wrap">{result.answer}</p>
                 </div>
               </div>
+
+              {/* Display data in grid format */}
+              <DataGrid contextData={result.context_used} language={language} />
               
               {result.sources && result.sources.length > 0 && (
                 <div className="mb-4">
